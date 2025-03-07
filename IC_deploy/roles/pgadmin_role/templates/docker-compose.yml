@@ -1,8 +1,0 @@
-name: <your project name>
-services:
-    pgadmin-ib:
-        stdin_open: true
-        environment:
-            - PGADMIN_DEFAULT_EMAIL=sample@example.com
-            - PGADMIN_DEFAULT_PASSWORD=pass_123
-        image: rapidfort/pgadmin-ib:latest

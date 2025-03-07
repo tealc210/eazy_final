@@ -4,6 +4,8 @@ services:
             - POSTGRES_USER={{ PG_USR_ID }}
             - POSTGRES_PASSWORD={{ PG_USR_PASS }}
             - POSTGRES_DB={{ PG_DB_NAME }}
+        ports:
+            - {{ EXP_PG_PORT }}:5432
         volumes:
             - {{ DB_VLM_ID }}:/var/lib/postgresql/data
         networks:
@@ -12,7 +14,7 @@ services:
         image: postgres:17
     {{ ODOO_SERVICE }}:
         ports:
-            - 8069:8069
+            - {{ EXP_ODOO_PORT }}:8069
         container_name: ic_odoo
         environment:
         - HOST=ic_pgdb

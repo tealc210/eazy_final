@@ -2,9 +2,11 @@
 # defaults file for odoo_role
 PG_SERVICE: postgres
 ODOO_SERVICE: odoo
+EXP_PG_PORT: 5432
+EXP_ODOO_PORT: 8069
 PG_USR_ID: odooic
 PG_USR_PASS: azerty+0
-PG_DB_NAME: odoodb
+PG_DB_NAME: postgres
 DB_VLM_ID: db_data
 ODOO_VLM_ID: odoo_data
 NET_ID: ic_net

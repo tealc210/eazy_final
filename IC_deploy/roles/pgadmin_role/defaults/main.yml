@@ -1,2 +1,7 @@
 ---
 # defaults file for pgadmin_role
+ADMIN_MAIL: "john.doe@nowhere.com"
+ADMIN_PASS: "AZERTy-0"
+INSTANCE_NAME: "ic_pgadm"
+HTTP_PORT: 8080
+HTTPS_PORT: 8443

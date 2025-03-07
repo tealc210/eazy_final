@@ -3,7 +3,9 @@
   become: true
   roles:
     - odoo_role
+  tags: odoo
 
 - hosts: pgadmin
   roles:
     - pgadmin_role
+  tags: pgadmin
