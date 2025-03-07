@@ -1,0 +1,34 @@
+name: <your project name>
+services:
+    postgres:
+        environment:
+            - POSTGRES_USER=odoo
+            - POSTGRES_PASSWORD=odoo
+            - POSTGRES_DB=postgres
+        volumes:
+            - odoo-db:/var/lib/postgresql/data
+        networks:
+            - odoo_net
+        container_name: db
+        image: postgres:17
+    odoo:
+        ports:
+            - 8069:8069
+        container_name: odoo
+        volumes:
+            - odoo-data:/var/lib/odoo
+        networks:
+            - odoo_net
+        tty: true
+        image: odoo
+networks:
+    odoo_net:
+        external: true
+        name: odoo_net
+volumes:
+    odoo-db:
+        external: true
+        name: odoo-db
+    odoo-data:
+        external: true
+        name: odoo-data

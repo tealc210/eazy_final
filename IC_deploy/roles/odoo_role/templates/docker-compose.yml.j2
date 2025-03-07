@@ -1,0 +1,36 @@
+services:
+    {{ PG_SERVICE }}:
+        environment:
+            - POSTGRES_USER={{ PG_USR_ID }}
+            - POSTGRES_PASSWORD={{ PG_USR_PASS }}
+            - POSTGRES_DB={{ PG_DB_NAME }}
+        volumes:
+            - {{ DB_VLM_ID }}:/var/lib/postgresql/data
+        networks:
+            - {{ NET_ID }}
+        container_name: ic_pgdb
+        image: postgres:17
+    {{ ODOO_SERVICE }}:
+        ports:
+            - 8069:8069
+        container_name: ic_odoo
+        environment:
+        - HOST=ic_pgdb
+        - USER={{ PG_USR_ID }}
+        - PASSWORD={{ PG_USR_PASS }}
+        depends_on:
+          - {{ PG_SERVICE }}
+        volumes:
+            - {{ ODOO_VLM_ID }}:/var/lib/odoo
+        networks:
+            - {{ NET_ID }}
+        tty: true
+        image: odoo
+networks:
+    {{ NET_ID }}:
+        name: {{ NET_ID }}
+volumes:
+    {{ DB_VLM_ID }}:
+        name: {{ DB_VLM_ID }}
+    {{ ODOO_VLM_ID }}:
+        name: {{ ODOO_VLM_ID }}

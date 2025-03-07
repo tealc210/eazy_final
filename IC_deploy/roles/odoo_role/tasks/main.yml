@@ -1,0 +1,13 @@
+---
+# tasks file for odoo_role
+- name: Compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: /tmp/docker-compose.yml
+
+- name: Create and start services
+  docker_compose:
+    project_src: /tmp
+  register: output
+- debug:
+    var: output
