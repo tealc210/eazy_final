@@ -31,7 +31,7 @@ PROD
         stage('Build IC image') {
             agent any
             environment {
-                IMAGE_TAG = sh(script: """awk '/version/ {sub(/^.* *version/, ""); print \$2}' /tmp/releases.txt""", returnStdout: true)
+                IMAGE_TAG = sh(script: """awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt""", returnStdout: true)
             }
             steps{
                 script{
@@ -81,6 +81,9 @@ PROD
 
         /*stage('Run generated image in container') {
             agent any
+            environment {
+                IMAGE_TAG = sh(script: """awk '/version/ {sub(/^.* *version/, ""); print \$2}' /tmp/releases.txt""", returnStdout: true)
+            }
             steps{
                 script {
                     if (env.BRANCH_NAME == 'main') {
@@ -134,6 +137,9 @@ PROD
 
         stage ('Push generated image on docker hub') {
             agent any
+            environment {
+                IMAGE_TAG = sh(script: """awk '/version/ {sub(/^.* *version/, ""); print \$2}' /tmp/releases.txt""", returnStdout: true)
+            }
             steps {
                 script {
                     if (env.BRANCH_NAME == 'main') {
