@@ -44,7 +44,7 @@ PROD
                         //sh '''
                         //docker build -t $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG
                         //'''
-                        dockerImage = docker.build("$IMAGE_NAME-$BranchName:$IMAGE_TAG")
+                        dockerImage = docker.build("$IMAGE_NAME-$env.BRANCH_NAME:$IMAGE_TAG")
                     }
                 }
             }
