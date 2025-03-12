@@ -234,10 +234,10 @@ PROD
             steps{
                 sh 'curl -L http://$ENV_PRD | grep "Pay My Buddy button"'
             }
-        }
+        }*/
 
     }
-    post {
+    /*post {
         success {
             script {
                 def message
