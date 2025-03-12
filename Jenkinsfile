@@ -31,7 +31,7 @@ PROD
         stage('Build IC image') {
             agent any
             environment {
-                IMAGE_TAG = sh(script: """awk '/version/ {sub(/^.* *version/, ""); print $2}' /tmp/releases.txt""", returnStdout: true)
+                IMAGE_TAG = sh(script: """awk '/version/ {sub(/^.* *version/, ""); print \$2}' /tmp/releases.txt""", returnStdout: true)
             }
             steps{
                 script{
