@@ -32,6 +32,7 @@ PROD
             agent any
             environment {
                 IMAGE_TAG = sh(script: """awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt""", returnStdout: true)
+                BranchName = sh(script: 'echo -n $BRANCH_NAME | sed \'s;/;_;g\'', returnStdout: true)
             }
             steps{
                 script{
@@ -44,8 +45,8 @@ PROD
                         //sh '''
                         //docker build -t $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG
                         //'''
-                        sh 'echo "$DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BRANCH_NAME:$IMAGE_TAG"'
-                        dockerImage = docker.build("$DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BRANCH_NAME:$IMAGE_TAG")
+                        sh 'echo "$DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG"'
+                        dockerImage = docker.build("$DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG")
                     }
                 }
             }
