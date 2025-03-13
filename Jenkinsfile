@@ -13,7 +13,7 @@ PROD
         IMAGE_NAME = "ic-webapp"
         //IMAGE_TAG = "latest"
         SONAR_TOKEN = credentials('sonarcloud')
-        DOCKERHUB_CREDENTIALS = credentials('DOCKERHUB')
+        DOCKERHUB_CREDENTIALS = credentials('DOCKER_HUB')
         ENV_PRD = "eazy-prd.agbo.fr"
         ENV_STG = "eazy-stg.agbo.fr"
         ODOO_TST = "172.17.0.1"
@@ -44,8 +44,8 @@ PROD
                         //sh '''
                         //docker build -t $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG
                         //'''
-                        sh 'echo "$DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$env.BRANCH_NAME:$IMAGE_TAG"'
-                        dockerImage = docker.build("$DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$env.BRANCH_NAME:$IMAGE_TAG")
+                        sh 'echo "$DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BRANCH_NAME:$IMAGE_TAG"'
+                        dockerImage = docker.build("$DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BRANCH_NAME:$IMAGE_TAG")
                     }
                 }
             }
