@@ -13,7 +13,6 @@ PROD
         IMAGE_NAME = "ic-webapp"
         //IMAGE_TAG = "latest"
         SONAR_TOKEN = credentials('sonarcloud')
-        SRVKEY = credentials('SSHKEY')
         DOCKERHUB_CREDENTIALS = credentials('DOCKER_HUB')
         ENV_PRD = "eazy-prd.agbo.fr"
         ENV_STG = "eazy-stg.agbo.fr"
