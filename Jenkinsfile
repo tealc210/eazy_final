@@ -86,10 +86,10 @@ PROD
             }
             steps{
                 script {
-                    withCredentials([sshUserPrivateKey(credentialsId: "SSHKEY", keyFileVariable: 'keyfile')]) {
+                    sshagent(credentials: ['SSHKEY']) {
                       if (env.BRANCH_NAME == 'main') {
                           ansiblePlaybook(
-                          credentialsId: '${keyfile}',
+                          //credentialsId: '${keyfile}',
                           inventory: 'IC_deploy/inventory/inventory.ini',
                           playbook: 'IC_deploy/deploy.yml')
                           sh '''
@@ -98,7 +98,7 @@ PROD
                           '''
                       } else {
                           ansiblePlaybook(
-                          credentialsId: '${keyfile}',
+                          //credentialsId: '${keyfile}',
                           inventory: 'IC_deploy/inventory/inventory.ini',
                           playbook: 'IC_deploy/deploy.yml')
                           sh '''
