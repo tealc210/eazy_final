@@ -85,9 +85,10 @@ PROD
             }
             steps{
                 script {
+                    sh 'echo $SSHKEY > .prvkey'
                     if (env.BRANCH_NAME == 'main') {
                         ansiblePlaybook(
-                        credentialsId: 'private_key',
+                        //credentialsId: 'private_key',
                         inventory: 'IC_deploy/inventory/inventory.ini',
                         playbook: 'IC_deploy/deploy.yml')
                         sh '''
@@ -96,7 +97,7 @@ PROD
                         '''
                     } else {
                         ansiblePlaybook(
-                        credentialsId: 'private_key',
+                        //credentialsId: 'private_key',
                         inventory: 'IC_deploy/inventory/inventory.ini',
                         playbook: 'IC_deploy/deploy.yml')
                         sh '''
