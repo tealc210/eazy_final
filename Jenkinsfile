@@ -42,11 +42,11 @@ PROD
                         '''
                         //dockerImage = docker.build("$DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME:$IMAGE_TAG")
                     } else {
-                        //sh '''
-                        //docker build -t $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG
-                        //'''
-                        sh 'echo "$DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG"'
-                        dockerImage = docker.build("$DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG")
+                        sh '''
+                        docker build -t $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG
+                        '''
+                        //sh 'echo "$DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG"'
+                        //dockerImage = docker.build("$DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG")
                     }
                 }
             }
