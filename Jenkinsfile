@@ -40,13 +40,10 @@ PROD
                         sh '''
                         docker build -t $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME:$IMAGE_TAG .
                         '''
-                        //dockerImage = docker.build("$DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME:$IMAGE_TAG")
                     } else {
                         sh '''
                         docker build -t $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG .
                         '''
-                        //sh 'echo "$DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG"'
-                        //dockerImage = docker.build("$DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG")
                     }
                 }
             }
@@ -81,7 +78,7 @@ PROD
             }
         }*/
 
-        /*stage('Run generated image in container') {
+        stage('Run generated image in container') {
             agent any
             environment {
                 IMAGE_TAG = sh(script: """awk '/version/ {sub(/^.* *version/, ""); print \$2}' /tmp/releases.txt""", returnStdout: true)
@@ -116,15 +113,15 @@ PROD
             steps{
                 script {
                     if (env.BRANCH_NAME == 'main') {
-                        sh 'curl -L http://$ENV_TST | grep "Pay My Buddy button"'
+                        sh 'curl -L http://$ENV_TST | grep "odoo"'
                     } else {
-                        sh 'curl -L http://$ENV_TST:81 | grep "Pay My Buddy button"'
+                        sh 'curl -L http://$ENV_TST:81 | grep "odoo"'
                     }
                 }
             }
         }
 
-        stage('Cleanup') {
+        /*stage('Cleanup') {
             agent any
             steps{
                 script {
