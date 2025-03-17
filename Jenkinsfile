@@ -85,7 +85,7 @@ PROD
             }
             steps{
                 script {
-                    sh 'echo $SSHKEY > .prvkey'
+                    sh 'echo $SSHKEY > .prvkey && chmod 600 .prvkey'
                     if (env.BRANCH_NAME == 'main') {
                         ansiblePlaybook(
                         //credentialsId: 'private_key',
@@ -105,6 +105,7 @@ PROD
                         sleep 30
                         '''
                     }
+                    sh 'rm .prvkey'
                 }
             }
         }
