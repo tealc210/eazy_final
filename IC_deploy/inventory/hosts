@@ -1,4 +1,7 @@
+[odoo]
 odoo ansible_host=192.168.1.201
+
+[pgadmin]
 pgadmin ansible_host=192.168.1.202
 
 [all:vars]
