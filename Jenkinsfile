@@ -89,7 +89,7 @@ PROD
                       if (env.BRANCH_NAME == 'main') {
                           ansiblePlaybook(
                           //credentialsId: '${keyfile}',
-                          inventory: 'IC_deploy/inventory/inventory.ini',
+                          inventory: 'IC_deploy/inventory/hosts',
                           playbook: 'IC_deploy/deploy.yml')
                           sh '''
                           docker run -d -p 80:8080 --name $IMAGE_NAME-$BranchName $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME:$IMAGE_TAG
@@ -98,7 +98,7 @@ PROD
                       } else {
                           ansiblePlaybook(
                           //credentialsId: '${keyfile}',
-                          inventory: 'IC_deploy/inventory/inventory.ini',
+                          inventory: 'IC_deploy/inventory/hosts',
                           playbook: 'IC_deploy/deploy.yml')
                           sh '''
                           docker run -d -p 81:8080 --add-host --add-host --name $IMAGE_NAME-$BranchName $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG
