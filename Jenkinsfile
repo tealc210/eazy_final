@@ -16,8 +16,9 @@ PROD
         DOCKERHUB_CREDENTIALS = credentials('DOCKER_HUB')
         ENV_PRD = "eazy-prd.agbo.fr"
         ENV_STG = "eazy-stg.agbo.fr"
-        ODOO_TST = "172.17.0.1"
-        PGADMIN_TST = "172.17.0.1"
+        DEPLOY_USER = "srvadm"
+        ODOO_TST = "192.168.1.201"
+        PGADMIN_TST = "192.168.1.202"
         ODOO_RVW = "172.17.0.1"
         PGADMIN_RVW = "172.17.0.1"
         DB_HOST_STG = "172.31.28.19"
@@ -52,7 +53,6 @@ PROD
         /*stage('Scan') {
             agent any
             environment {
-                MVN3 = tool name: 'mvn3'
                 JAVA17 = tool name: 'java17'
                 SONARCLD_ORG = "tealc-210"
                 SONARCLD_PJ_KEY = "${SONARCLD_ORG}_jenkins"
@@ -60,7 +60,6 @@ PROD
             steps {
                 withSonarQubeEnv('SonarCloud') {
                     sh '''
-                    export PATH="${PATH}:${MVN3}/bin"
                     export JAVA_HOME="$JAVA17"
                     cd ./app_code/
                     mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.organization=${SONARCLD_ORG} -Dsonar.projectKey=${SONARCLD_PJ_KEY}
@@ -85,10 +84,12 @@ PROD
             }
             steps{
                 script {
+                    sh '''
+                    sed s/ODOOIP/$ODOO_TST/ IC_deploy/inventory/hosts.example | sed s/PGADMINIP/$PGADMIN_TST/ | sed s/SSHUSER/$DEPLOY_USER/ > IC_deploy/inventory/hosts
+                    '''
                     sshagent(credentials: ['SSHKEY']) {
                       if (env.BRANCH_NAME == 'main') {
                           ansiblePlaybook(
-                          //credentialsId: '${keyfile}',
                           inventory: 'IC_deploy/inventory/hosts',
                           playbook: 'IC_deploy/deploy.yml')
                           sh '''
@@ -97,11 +98,10 @@ PROD
                           '''
                       } else {
                           ansiblePlaybook(
-                          //credentialsId: '${keyfile}',
                           inventory: 'IC_deploy/inventory/hosts',
                           playbook: 'IC_deploy/deploy.yml')
                           sh '''
-                          docker run -d -p 81:8080 --add-host --add-host --name $IMAGE_NAME-$BranchName $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG
+                          docker run -d -p 81:8080 --name $IMAGE_NAME-$BranchName $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG
                           sleep 30
                           '''
                       }
