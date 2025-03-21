@@ -135,14 +135,16 @@ PROD
             }
         }
 
-        /*stage('Cleanup') {
+        stage('Cleanup') {
             agent any
+            environment {
+              BranchName = sh(script: 'echo -n $BRANCH_NAME | sed \'s;/;_;g\'', returnStdout: true)
+            }
             steps{
                 script {
                     sh '''
-                    docker stop $IMAGE_NAME-$BranchName mysql-$BranchName
-                    docker rm -v $IMAGE_NAME-$BranchName mysql-$BranchName
-                    docker volume rm sql-$BranchName
+                    docker stop $IMAGE_NAME-$BranchName
+                    docker rm $IMAGE_NAME-$BranchName
                     '''
                 }
             }
@@ -151,7 +153,8 @@ PROD
         stage ('Push generated image on docker hub') {
             agent any
             environment {
-                IMAGE_TAG = sh(script: """awk '/version/ {sub(/^.* *version/, ""); print \$2}' /tmp/releases.txt""", returnStdout: true)
+              IMAGE_TAG = sh(script: """awk '/version/ {sub(/^.* *version/, ""); print \$2}' /tmp/releases.txt""", returnStdout: true)
+              BranchName = sh(script: 'echo -n $BRANCH_NAME | sed \'s;/;_;g\'', returnStdout: true)
             }
             steps {
                 script {
@@ -170,7 +173,7 @@ PROD
             }
         }
 
-        stage ('Deploy to Staging Env') {
+        /*stage ('Deploy to Staging Env') {
             agent any
             when {
                 not {
