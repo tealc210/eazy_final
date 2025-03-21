@@ -157,11 +157,6 @@ PROD
                 BranchName = sh(script: 'echo -n $BRANCH_NAME | sed \'s;/;_;g\'', returnStdout: true)
             }
             steps {
-                sh 'sed s/ODOOHOST/$ODOO_RVW/ IC_deploy/inventory/hosts.example | sed s/PGADMINHOST/$PGADMIN_RVW/ | sed s/SSHUSER/$DEPLOY_USER/ > IC_deploy/inventory/hosts'
-                ansiblePlaybook(
-                inventory: 'IC_deploy/inventory/hosts',
-                playbook: 'IC_deploy/deploy.yml')
-
                 sshagent(credentials: ['SSHKEY']) {
                     sh 'sed s/ODOOHOST/$ODOO_RVW/ IC_deploy/inventory/hosts.example | sed s/PGADMINHOST/$PGADMIN_RVW/ | sed s/SSHUSER/$DEPLOY_USER/ > IC_deploy/inventory/hosts'
                     ansiblePlaybook(
