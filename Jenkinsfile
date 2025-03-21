@@ -12,7 +12,7 @@ PROD
         SONAR_TOKEN = credentials('sonarcloud')
         DOCKERHUB_CREDENTIALS = credentials('DOCKER_HUB')
         PORTAL_PRD = "ic-portal.training-dag.loc"
-        PORTAL_TST = "172.17.0.1"
+        PORTAL_TST = "ic-portal.tst.training-dag.loc"
         PORTAL_RVW = "ic-portal.rvw.training-dag.loc"
         DEPLOY_USER = "srvadm"
         ODOO_RVW = "ic-odoo.rvw.training-dag.loc"
@@ -163,6 +163,10 @@ PROD
                 playbook: 'IC_deploy/deploy.yml')
 
                 sshagent(credentials: ['SSHKEY']) {
+                    sh 'sed s/ODOOHOST/$ODOO_RVW/ IC_deploy/inventory/hosts.example | sed s/PGADMINHOST/$PGADMIN_RVW/ | sed s/SSHUSER/$DEPLOY_USER/ > IC_deploy/inventory/hosts'
+                    ansiblePlaybook(
+                    inventory: 'IC_deploy/inventory/hosts',
+                    playbook: 'IC_deploy/deploy.yml')
                     sh '''
                         [ -d ~/.ssh ] || mkdir ~/.ssh && chmod 0600 ~/.ssh
                         ssh-keyscan -t rsa,dsa,ed25519 ${DEPLOY_ENV} >> ~/.ssh/known_hosts
@@ -181,10 +185,10 @@ PROD
                 }
 
                 sh '''
-                curl -L http://${DEPLOY_ENV} | grep "${ODOO_RVW}"
-                curl -L http://${DEPLOY_ENV} | grep "${PGADMIN_RVW}"
-                curl -L http://${ODOO_RVW}:8069 | grep "body"
-                curl -L http://${PGADMIN_RVW}:8080 | grep "You must sign in to view this resource"
+                    curl -L http://${DEPLOY_ENV} | grep "${ODOO_RVW}"
+                    curl -L http://${DEPLOY_ENV} | grep "${PGADMIN_RVW}"
+                    curl -L http://${ODOO_RVW}:8069 | grep "body"
+                    curl -L http://${PGADMIN_RVW}:8080 | grep "You must sign in to view this resource"
                 '''
             }
         }
