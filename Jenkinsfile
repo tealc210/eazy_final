@@ -12,7 +12,7 @@ PROD
         SONAR_TOKEN = credentials('sonarcloud')
         DOCKERHUB_CREDENTIALS = credentials('DOCKER_HUB')
         PORTAL_PRD = "ic-portal.training-dag.loc"
-        PORTAL_TST = "ic-portal.tst.training-dag.loc"
+        PORTAL_TST = "172.17.0.1"
         PORTAL_RVW = "ic-portal.rvw.training-dag.loc"
         DEPLOY_USER = "srvadm"
         ODOO_RVW = "ic-odoo.rvw.training-dag.loc"
