@@ -71,11 +71,13 @@ PROD
             }
         }*/
 
-        stage('Deploy portal') {
+        stage('Deploy and test portal') {
             agent any
             environment {
                 IMAGE_TAG = sh(script: """awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt""", returnStdout: true)
                 BranchName = sh(script: 'echo -n $BRANCH_NAME | sed \'s;/;_;g\'', returnStdout: true)
+                ODOO_URL = sh(script: """awk '/ODOO/ {sub(/^.* *ODOO/, ""); print \$2}' releases.txt""", returnStdout: true)
+                PGADMIN_URL = sh(script: """awk '/PGADMIN/ {sub(/^.* *PGADMIN/, ""); print \$2}' releases.txt""", returnStdout: true)
             }
             steps{
                 script {
@@ -99,12 +101,27 @@ PROD
                           '''
                       }
                       sh 'sleep 10'
+                      if (env.BRANCH_NAME == 'main') {
+                          sh '''
+                          curl -L http://$PORTAL_TST | grep "${ODOO_URL}"
+                          curl -L http://$PORTAL_TST | grep "${PGADMIN_URL}"
+                          '''
+                      } else {
+                          sh '''
+                          curl -L http://$PORTAL_TST:81 | grep "${ODOO_URL}"
+                          curl -L http://$PORTAL_TST:81 | grep "${PGADMIN_URL}"
+                          '''
+                      }
+                      sh '''
+                      docker stop $IMAGE_NAME-$BranchName
+                      docker rm $IMAGE_NAME-$BranchName
+                      '''
                     //}
                 }
             }
         }
 
-        stage('Check application') {
+        /*stage('Check application') {
             agent any
             environment {
               ODOO_URL = sh(script: """awk '/ODOO/ {sub(/^.* *ODOO/, ""); print \$2}' releases.txt""", returnStdout: true)
@@ -140,7 +157,7 @@ PROD
                     '''
                 }
             }
-        }
+        }*/
 
         stage ('Push generated image on docker hub') {
             agent any
