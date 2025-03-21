@@ -1,9 +1,7 @@
 pipeline {
 
 /*
-BUILD
 CODE QUALITY
-TESTS
 PACKAGE
 REVIEW TEST
 PROD
@@ -11,19 +9,14 @@ PROD
 
     environment {
         IMAGE_NAME = "ic-webapp"
-        //IMAGE_TAG = "latest"
         SONAR_TOKEN = credentials('sonarcloud')
         DOCKERHUB_CREDENTIALS = credentials('DOCKER_HUB')
         PORTAL_PRD = "ic-portal.training-dag.loc"
         PORTAL_TST = "ic-portal.tst.training-dag.loc"
         PORTAL_RVW = "ic-portal.rvw.training-dag.loc"
         DEPLOY_USER = "srvadm"
-        ODOO_TST = "192.168.1.201"
-        PGADMIN_TST = "192.168.1.202"
-        ODOO_RVW = "172.17.0.1"
-        PGADMIN_RVW = "172.17.0.1"
-        DB_HOST_STG = "172.31.28.19"
-        DB_HOST_PRD = "172.31.80.69"
+        ODOO_RVW = "ic-odoo.rvw.training-dag.loc"
+        PGADMIN_RVW = "ic-pgadmin.rvw.training-dag.loc"
     }
 
     agent none
@@ -96,7 +89,6 @@ PROD
                           playbook: 'IC_deploy/deploy.yml')*/
                           sh '''
                           docker run -d -p 80:8080 --name $IMAGE_NAME-$BranchName $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME:$IMAGE_TAG
-                          sleep 30
                           '''
                       } else {
                           /*ansiblePlaybook(
@@ -104,9 +96,9 @@ PROD
                           playbook: 'IC_deploy/deploy.yml')*/
                           sh '''
                           docker run -d -p 81:8080 --name $IMAGE_NAME-$BranchName $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG
-                          sleep 30
                           '''
                       }
+                      sh 'sleep 10'
                     //}
                 }
             }
@@ -153,7 +145,7 @@ PROD
         stage ('Push generated image on docker hub') {
             agent any
             environment {
-              IMAGE_TAG = sh(script: """awk '/version/ {sub(/^.* *version/, ""); print \$2}' /tmp/releases.txt""", returnStdout: true)
+              IMAGE_TAG = sh(script: """awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt""", returnStdout: true)
               BranchName = sh(script: 'echo -n $BRANCH_NAME | sed \'s;/;_;g\'', returnStdout: true)
             }
             steps {
