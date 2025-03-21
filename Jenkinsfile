@@ -14,8 +14,9 @@ PROD
         //IMAGE_TAG = "latest"
         SONAR_TOKEN = credentials('sonarcloud')
         DOCKERHUB_CREDENTIALS = credentials('DOCKER_HUB')
-        ENV_PRD = "eazy-prd.agbo.fr"
-        ENV_STG = "eazy-stg.agbo.fr"
+        PORTAL_PRD = "ic-portal.training-dag.loc"
+        PORTAL_TST = "ic-portal.tst.training-dag.loc"
+        PORTAL_RVW = "ic-portal.rvw.training-dag.loc"
         DEPLOY_USER = "srvadm"
         ODOO_TST = "192.168.1.201"
         PGADMIN_TST = "192.168.1.202"
@@ -77,47 +78,58 @@ PROD
             }
         }*/
 
-        stage('Run generated image in container') {
+        stage('Deploy portal') {
             agent any
             environment {
                 IMAGE_TAG = sh(script: """awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt""", returnStdout: true)
+                BranchName = sh(script: 'echo -n $BRANCH_NAME | sed \'s;/;_;g\'', returnStdout: true)
             }
             steps{
                 script {
-                    sh '''
+                    /*sh '''
                     sed s/ODOOIP/$ODOO_TST/ IC_deploy/inventory/hosts.example | sed s/PGADMINIP/$PGADMIN_TST/ | sed s/SSHUSER/$DEPLOY_USER/ > IC_deploy/inventory/hosts
-                    '''
-                    sshagent(credentials: ['SSHKEY']) {
+                    '''*/
+                    //sshagent(credentials: ['SSHKEY']) {
                       if (env.BRANCH_NAME == 'main') {
-                          ansiblePlaybook(
+                          /*ansiblePlaybook(
                           inventory: 'IC_deploy/inventory/hosts',
-                          playbook: 'IC_deploy/deploy.yml')
+                          playbook: 'IC_deploy/deploy.yml')*/
                           sh '''
                           docker run -d -p 80:8080 --name $IMAGE_NAME-$BranchName $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME:$IMAGE_TAG
                           sleep 30
                           '''
                       } else {
-                          ansiblePlaybook(
+                          /*ansiblePlaybook(
                           inventory: 'IC_deploy/inventory/hosts',
-                          playbook: 'IC_deploy/deploy.yml')
+                          playbook: 'IC_deploy/deploy.yml')*/
                           sh '''
                           docker run -d -p 81:8080 --name $IMAGE_NAME-$BranchName $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG
                           sleep 30
                           '''
                       }
-                    }
+                    //}
                 }
             }
         }
 
         stage('Check application') {
             agent any
+            environment {
+              ODOO_URL = sh(script: """awk '/ODOO/ {sub(/^.* *ODOO/, ""); print \$2}' releases.txt""", returnStdout: true)
+              PGADMIN_URL = sh(script: """awk '/PGADMIN/ {sub(/^.* *PGADMIN/, ""); print \$2}' releases.txt""", returnStdout: true)
+            }
             steps{
                 script {
                     if (env.BRANCH_NAME == 'main') {
-                        sh 'curl -L http://$ENV_TST | grep "odoo"'
+                        sh '''
+                        curl -L http://$PORTAL_TST | grep "${ODOO_URL}"
+                        curl -L http://$PORTAL_TST | grep "${PGADMIN_URL}"
+                        '''
                     } else {
-                        sh 'curl -L http://$ENV_TST:81 | grep "odoo"'
+                        sh '''
+                        curl -L http://$PORTAL_TST:81 | grep "${ODOO_URL}"
+                        curl -L http://$PORTAL_TST:81 | grep "${PGADMIN_URL}"
+                        '''
                     }
                 }
             }
