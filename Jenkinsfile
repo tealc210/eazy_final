@@ -37,6 +37,7 @@ PROD
                         '''
                     } else {
                         sh '''
+                        cp releases-rvw.txt releases.txt
                         docker build -t $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG .
                         '''
                     }
@@ -153,7 +154,7 @@ PROD
             }
             environment {
                 DEPLOY_ENV = "${PORTAL_RVW}"
-                IMAGE_TAG = sh(script: """awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt""", returnStdout: true)
+                IMAGE_TAG = sh(script: """echo -n \$(awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt)""", returnStdout: true)
                 BranchName = sh(script: 'echo -n $BRANCH_NAME | sed \'s;/;_;g\'', returnStdout: true)
             }
             steps {
@@ -163,16 +164,18 @@ PROD
                     inventory: 'IC_deploy/inventory/hosts',
                     playbook: 'IC_deploy/deploy.yml')
                     sh '''
-                        [ -d ~/.ssh ] || mkdir ~/.ssh && chmod 0600 ~/.ssh
+                        [ -d ~/.ssh ] || mkdir ~/.ssh && chmod 0700 ~/.ssh
                         ssh-keyscan -t rsa,dsa,ed25519 ${DEPLOY_ENV} >> ~/.ssh/known_hosts
                         command1="docker login -u ${DOCKERHUB_CREDENTIALS_USR} -p ${DOCKERHUB_CREDENTIALS_PSW}"
                         command2="docker pull ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_NAME}-${BranchName}:${IMAGE_TAG}"
                         command3="docker ps -a | grep ${IMAGE_NAME}-${BranchName} && docker rm -f ${IMAGE_NAME}-${BranchName} || echo 'app does not exist'"
-                        command4="docker run -d -p 80:8080 -e ODOO_URL='${ODOO_RVW}' -e PGADMIN_URL='${PGADMIN_RVW}' ${IMAGE_NAME}-${BranchName} ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_NAME}-${BranchName}:${IMAGE_TAG}"
-                        ssh -t ${SSHUSER}@${DEPLOY_ENV} \
+                        command4="docker run -d -p 80:8080 --name ${IMAGE_NAME}-${BranchName} ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_NAME}-${BranchName}:${IMAGE_TAG}"
+                        ssh -t ${DEPLOY_USER}@${DEPLOY_ENV} \
                             -o SendEnv=IMAGE_NAME \
                             -o SendEnv=BranchName \
                             -o SendEnv=IMAGE_TAG \
+                            -o SendEnv=ODOO_RVW \
+                            -o SendEnv=PGADMIN_RVW \
                             -o SendEnv=DOCKERHUB_CREDENTIALS_USR \
                             -o SendEnv=DOCKERHUB_CREDENTIALS_PSW \
                             -C "$command1 && $command2 && $command3 && $command4 && sleep 10"
