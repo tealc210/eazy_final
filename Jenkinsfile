@@ -2,8 +2,6 @@ pipeline {
 
 /*
 CODE QUALITY
-PACKAGE
-REVIEW TEST
 PROD
 */
 
@@ -15,15 +13,13 @@ PROD
         PORTAL_TST = "ic-portal.tst.training-dag.loc"
         PORTAL_RVW = "ic-portal.rvw.training-dag.loc"
         DEPLOY_USER = "srvadm"
-        ODOO_RVW = "ic-odoo.rvw.training-dag.loc"
-        PGADMIN_RVW = "ic-pgadmin.rvw.training-dag.loc"
     }
 
     agent none
 
     stages{
 
-        stage('Build IC image') {
+        stage('BUILD') {
             agent any
             environment {
                 IMAGE_TAG = sh(script: """awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt""", returnStdout: true)
@@ -37,7 +33,9 @@ PROD
                         '''
                     } else {
                         sh '''
-                        cp releases-rvw.txt releases.txt
+                        sed -i s/"^PGADMIN"/";PGADMIN"/ releases.txt
+                        sed -i s/"^ODOO"/";ODOO"/ releases.txt
+                        sed -i s/"#"/""/g releases.txt
                         docker build -t $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG .
                         '''
                     }
@@ -72,7 +70,7 @@ PROD
             }
         }*/
 
-        stage('Deploy and test portal') {
+        stage('TESTS') {
             agent any
             environment {
                 IMAGE_TAG = sh(script: """awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt""", returnStdout: true)
@@ -82,21 +80,11 @@ PROD
             }
             steps{
                 script {
-                    /*sh '''
-                    sed s/ODOOIP/$ODOO_TST/ IC_deploy/inventory/hosts.example | sed s/PGADMINIP/$PGADMIN_TST/ | sed s/SSHUSER/$DEPLOY_USER/ > IC_deploy/inventory/hosts
-                    '''*/
-                    //sshagent(credentials: ['SSHKEY']) {
                       if (env.BRANCH_NAME == 'main') {
-                          /*ansiblePlaybook(
-                          inventory: 'IC_deploy/inventory/hosts',
-                          playbook: 'IC_deploy/deploy.yml')*/
                           sh '''
                           docker run -d -p 80:8080 --name $IMAGE_NAME-$BranchName $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME:$IMAGE_TAG
                           '''
                       } else {
-                          /*ansiblePlaybook(
-                          inventory: 'IC_deploy/inventory/hosts',
-                          playbook: 'IC_deploy/deploy.yml')*/
                           sh '''
                           docker run -d -p 81:8080 --name $IMAGE_NAME-$BranchName $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG
                           '''
@@ -117,12 +105,11 @@ PROD
                       docker stop $IMAGE_NAME-$BranchName
                       docker rm $IMAGE_NAME-$BranchName
                       '''
-                    //}
                 }
             }
         }
 
-        stage ('Push generated image on docker hub') {
+        stage ('PACKAGE') {
             agent any
             environment {
               IMAGE_TAG = sh(script: """awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt""", returnStdout: true)
@@ -145,7 +132,7 @@ PROD
             }
         }
 
-        stage ('Deploy to Review Env') {
+        stage ('REVIEW/TEST') {
             agent any
             when {
                 not {
@@ -156,10 +143,13 @@ PROD
                 DEPLOY_ENV = "${PORTAL_RVW}"
                 IMAGE_TAG = sh(script: """echo -n \$(awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt)""", returnStdout: true)
                 BranchName = sh(script: 'echo -n $BRANCH_NAME | sed \'s;/;_;g\'', returnStdout: true)
+                ODOO = sh(script: """echo -n \$(awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt)""", returnStdout: true)
+                PGADMIN = sh(script: """echo -n \$(awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt)""", returnStdout: true)
+
             }
             steps {
                 sshagent(credentials: ['SSHKEY']) {
-                    sh 'sed s/ODOOHOST/$ODOO_RVW/ IC_deploy/inventory/hosts.example | sed s/PGADMINHOST/$PGADMIN_RVW/ | sed s/SSHUSER/$DEPLOY_USER/ > IC_deploy/inventory/hosts'
+                    sh 'sed s/ODOOHOST/$ODOO/ IC_deploy/inventory/hosts.example | sed s/PGADMINHOST/$PGADMIN/ | sed s/SSHUSER/$DEPLOY_USER/ > IC_deploy/inventory/hosts'
                     ansiblePlaybook(
                     inventory: 'IC_deploy/inventory/hosts',
                     playbook: 'IC_deploy/deploy.yml')
@@ -174,8 +164,6 @@ PROD
                             -o SendEnv=IMAGE_NAME \
                             -o SendEnv=BranchName \
                             -o SendEnv=IMAGE_TAG \
-                            -o SendEnv=ODOO_RVW \
-                            -o SendEnv=PGADMIN_RVW \
                             -o SendEnv=DOCKERHUB_CREDENTIALS_USR \
                             -o SendEnv=DOCKERHUB_CREDENTIALS_PSW \
                             -C "$command1 && $command2 && $command3 && $command4 && sleep 10"
@@ -183,54 +171,56 @@ PROD
                 }
 
                 sh '''
-                    curl -L http://${DEPLOY_ENV} | grep "${ODOO_RVW}"
-                    curl -L http://${DEPLOY_ENV} | grep "${PGADMIN_RVW}"
-                    curl -L http://${ODOO_RVW}:8069 | grep "body"
-                    curl -L http://${PGADMIN_RVW}:8080 | grep "You must sign in to view this resource"
+                    curl -L http://${DEPLOY_ENV} | grep "${ODOO}"
+                    curl -L http://${DEPLOY_ENV} | grep "${PGADMIN}"
+                    curl -L http://${ODOO}:8069 | grep "Warning, your Odoo database manager is not protected. To secure it, we have generated the following master password for it"
+                    curl -L http://${PGADMIN}:8080 | grep "<title>pgAdmin 4</title>"
                 '''
             }
         }
 
-        /*stage ('Deploy to Prod Env') {
+        stage ('PRODUCTION') {
             agent any
             when {
                 branch 'main'
             }
             environment {
-                DEPLOY_ENV = "${ENV_PRD}"
-                DB_HOST = "${DB_HOST_PRD}"
-                DB_CREDS = credentials('DB_CREDS')
+                DEPLOY_ENV = "${PORTAL_PRD}"
+                IMAGE_TAG = sh(script: """echo -n \$(awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt)""", returnStdout: true)
+                ODOO = sh(script: """echo -n \$(awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt)""", returnStdout: true)
+                PGADMIN = sh(script: """echo -n \$(awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt)""", returnStdout: true)
+
             }
             steps {
                 sshagent(credentials: ['SSHKEY']) {
+                    sh 'sed s/ODOOHOST/$ODOO/ IC_deploy/inventory/hosts.example | sed s/PGADMINHOST/$PGADMIN/ | sed s/SSHUSER/$DEPLOY_USER/ > IC_deploy/inventory/hosts'
+                    ansiblePlaybook(
+                    inventory: 'IC_deploy/inventory/hosts',
+                    playbook: 'IC_deploy/deploy.yml')
                     sh '''
                         [ -d ~/.ssh ] || mkdir ~/.ssh && chmod 0700 ~/.ssh
                         ssh-keyscan -t rsa,dsa,ed25519 ${DEPLOY_ENV} >> ~/.ssh/known_hosts
-                        command1="docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW"
-                        command2="docker pull $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME:$IMAGE_TAG"
-                        command3="docker ps -a | grep $IMAGE_NAME && docker rm -f $IMAGE_NAME || echo 'app does not exist'"
-                        command4="docker run -d -p 80:8080 -e SPRING_DATASOURCE_USERNAME='${DB_CREDS_USR}' -e SPRING_DATASOURCE_PASSWORD='${DB_CREDS_PSW}' -e SPRING_DATASOURCE_URL='jdbc:mysql://${DB_HOST}:3306/db_paymybuddy' --name $IMAGE_NAME $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME:$IMAGE_TAG"
-                        ssh -t ubuntu@${DEPLOY_ENV} \
+                        command1="docker login -u ${DOCKERHUB_CREDENTIALS_USR} -p ${DOCKERHUB_CREDENTIALS_PSW}"
+                        command2="docker pull ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_NAME}:${IMAGE_TAG}"
+                        command3="docker ps -a | grep ${IMAGE_NAME} && docker rm -f ${IMAGE_NAME} || echo 'app does not exist'"
+                        command4="docker run -d -p 80:8080 --name ${IMAGE_NAME} ${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_NAME}:${IMAGE_TAG}"
+                        ssh -t ${DEPLOY_USER}@${DEPLOY_ENV} \
                             -o SendEnv=IMAGE_NAME \
                             -o SendEnv=IMAGE_TAG \
                             -o SendEnv=DOCKERHUB_CREDENTIALS_USR \
                             -o SendEnv=DOCKERHUB_CREDENTIALS_PSW \
-                            -C "$command1 && $command2 && $command3 && $command4 && sleep 30"
+                            -C "$command1 && $command2 && $command3 && $command4 && sleep 10"
                     '''
                 }
+
+                sh '''
+                    curl -L http://${DEPLOY_ENV} | grep "${ODOO}"
+                    curl -L http://${DEPLOY_ENV} | grep "${PGADMIN}"
+                    curl -L http://${ODOO}:8069 | grep "Warning, your Odoo database manager is not protected. To secure it, we have generated the following master password for it"
+                    curl -L http://${PGADMIN}:8080 | grep "<title>pgAdmin 4</title>"
+                '''
             }
         }
-
-        stage('Check Prod deployed application') {
-            agent any
-            when {
-                branch 'main'
-            }
-            steps{
-                sh 'curl -L http://$ENV_PRD | grep "Pay My Buddy button"'
-            }
-        }*/
-
     }
     /*post {
         success {
