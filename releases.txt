@@ -1,5 +1,8 @@
+### Production ###
 ODOO_URL: http://ic-odoo.training-dag.loc
-#ODOO_URL: http://ic-odoo.rvw.training-dag.loc
 PGADMIN_URL: http://ic-pgadmin.training-dag.loc
-#PGADMIN_URL: http://ic-pgadmin.rvw.training-dag.loc
+### Review ###
+RVW_ODOO_URL: http://ic-odoo.rvw.training-dag.loc
+RVW_PGADMIN_URL: http://ic-pgadmin.rvw.training-dag.loc
+### Release Version ###
 version: 1.1

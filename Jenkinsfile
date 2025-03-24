@@ -29,13 +29,13 @@ PROD
                 script{
                     if (env.BRANCH_NAME == 'main') {
                         sh '''
+                        sed -i '/^RVW/d' releases.txt
                         docker build -t $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME:$IMAGE_TAG .
                         '''
                     } else {
                         sh '''
-                        sed -i s/"^PGADMIN"/";PGADMIN"/ releases.txt
-                        sed -i s/"^ODOO"/";ODOO"/ releases.txt
-                        sed -i s/"#"/""/g releases.txt
+                        sed -i '/^RVW/,/^version/!d' releases.txt
+                        sed -i s/"RVW_"/""/g releases.txt
                         docker build -t $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG .
                         '''
                     }
@@ -143,8 +143,8 @@ PROD
                 DEPLOY_ENV = "${PORTAL_RVW}"
                 IMAGE_TAG = sh(script: """echo -n \$(awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt)""", returnStdout: true)
                 BranchName = sh(script: 'echo -n $BRANCH_NAME | sed \'s;/;_;g\'', returnStdout: true)
-                ODOO = sh(script: """echo -n \$(awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt)""", returnStdout: true)
-                PGADMIN = sh(script: """echo -n \$(awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt)""", returnStdout: true)
+                ODOO = sh(script: """echo -n \$(awk '/RVW_ODOO/ {sub(/^.* *RVW_ODOO/, ""); print \$2}' releases.txt | sed \'s;http://;;\')""", returnStdout: true)
+                PGADMIN = sh(script: """echo -n \$(awk '/RVW_PGADMIN/ {sub(/^.* *RVW_PGADMIN/, ""); print \$2}' releases.txt | sed \'s;http://;;\')""", returnStdout: true)
 
             }
             steps {
@@ -187,8 +187,8 @@ PROD
             environment {
                 DEPLOY_ENV = "${PORTAL_PRD}"
                 IMAGE_TAG = sh(script: """echo -n \$(awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt)""", returnStdout: true)
-                ODOO = sh(script: """echo -n \$(awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt)""", returnStdout: true)
-                PGADMIN = sh(script: """echo -n \$(awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt)""", returnStdout: true)
+                ODOO = sh(script: """echo -n \$(awk '/^ODOO/ {sub(/^.* *version/, ""); print \$2}' releases.txt | sed \'s;http://;;\')""", returnStdout: true)
+                PGADMIN = sh(script: """echo -n \$(awk '/^PGADMIN/ {sub(/^.* *PGADMIN/, ""); print \$2}' releases.txt | sed \'s;http://;;\')""", returnStdout: true)
 
             }
             steps {
