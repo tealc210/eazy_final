@@ -1,10 +1,5 @@
 pipeline {
 
-/*
-CODE QUALITY
-PROD
-*/
-
     environment {
         IMAGE_NAME = "ic-webapp"
         SONAR_TOKEN = credentials('sonarcloud')
@@ -43,32 +38,31 @@ PROD
             }
         }
 
-        /*stage('Scan') {
+        stage('CODE QUALITY') {
             agent any
             environment {
-                JAVA17 = tool name: 'java17'
+                SNR_SCANNER = tool name: 'scanner'
                 SONARCLD_ORG = "tealc-210"
-                SONARCLD_PJ_KEY = "${SONARCLD_ORG}_jenkins"
+                SONARCLD_PJ_KEY = "${SONARCLD_ORG}_final"
             }
             steps {
                 withSonarQubeEnv('SonarCloud') {
                     sh '''
-                    export JAVA_HOME="$JAVA17"
-                    cd ./app_code/
-                    mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.organization=${SONARCLD_ORG} -Dsonar.projectKey=${SONARCLD_PJ_KEY}
+                    cd ./app-code/
+                    ${SNR_SCANNER}/bin/sonar-scanner -Dsonar.organization=${SONARCLD_ORG} -Dsonar.projectKey=${SONARCLD_PJ_KEY} -Dsonar.sources=. -Dsonar.host.url=https://sonarcloud.io
                     '''
 
                 }
             }
         }
 
-        stage("Quality Gate") {
+        stage("QUALITY GATE") {
             steps {
                 timeout(time: 1, unit: 'HOURS') {
                     waitForQualityGate abortPipeline: true
                 }
             }
-        }*/
+        }
 
         stage('TESTS') {
             agent any
@@ -187,7 +181,7 @@ PROD
             environment {
                 DEPLOY_ENV = "${PORTAL_PRD}"
                 IMAGE_TAG = sh(script: """echo -n \$(awk '/version/ {sub(/^.* *version/, ""); print \$2}' releases.txt)""", returnStdout: true)
-                ODOO = sh(script: """echo -n \$(awk '/^ODOO/ {sub(/^.* *version/, ""); print \$2}' releases.txt | sed \'s;http://;;\')""", returnStdout: true)
+                ODOO = sh(script: """echo -n \$(awk '/^ODOO/ {sub(/^.* *ODOO/, ""); print \$2}' releases.txt | sed \'s;http://;;\')""", returnStdout: true)
                 PGADMIN = sh(script: """echo -n \$(awk '/^PGADMIN/ {sub(/^.* *PGADMIN/, ""); print \$2}' releases.txt | sed \'s;http://;;\')""", returnStdout: true)
 
             }
@@ -222,14 +216,14 @@ PROD
             }
         }
     }
-    /*post {
+    post {
         success {
             script {
                 def message
                 if (env.BRANCH_NAME == 'main') {
-                  message = "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL}) - PROD URL => http://${ENV_PRD}"
+                  message = "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL}) - PROD URL => http://${PORTAL_PRD}"
                 } else {
-                    message = "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL}) - STAGING URL => http://${ENV_STG}"
+                    message = "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL}) - REVIEW URL => http://${PORTAL_RVW}"
                 }
                 slackSend(color: '#00FF00', message: message)
             }
@@ -239,5 +233,5 @@ PROD
                 slackSend(color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
             }
         }
-    }*/
+    }
 }
