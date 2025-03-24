@@ -1,5 +1,10 @@
 ---
 # tasks file for pgadmin_role
+- name: PgAdmin configuration file
+  ansible.builtin.template:
+    src: server.json.j2
+    dest: /tmp/server.json
+
 - name: Compose file
   ansible.builtin.template:
     src: docker-compose.yml.j2
