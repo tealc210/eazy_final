@@ -1,11 +1,11 @@
 ---
-- hosts: odoo
+- hosts: production_odoo, review_odoo
   become: true
   roles:
     - odoo_role
   tags: odoo
 
-- hosts: pgadmin
+- hosts: production_pgadmin, review_pgadmin
   roles:
     - pgadmin_role
   tags: pgadmin

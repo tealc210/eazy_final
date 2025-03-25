@@ -75,29 +75,25 @@ pipeline {
             steps{
                 script {
                       if (env.BRANCH_NAME == 'main') {
-                          sh '''
-                          docker run -d -p 80:8080 --name $IMAGE_NAME-$BranchName $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME:$IMAGE_TAG
-                          '''
+                          sh 'docker run -d -p 80:8080 --name $IMAGE_NAME-$BranchName $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME:$IMAGE_TAG'
                       } else {
-                          sh '''
-                          docker run -d -p 81:8080 --name $IMAGE_NAME-$BranchName $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG
-                          '''
+                          sh 'docker run -d -p 81:8080 --name $IMAGE_NAME-$BranchName $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG'
                       }
                       sh 'sleep 10'
                       if (env.BRANCH_NAME == 'main') {
                           sh '''
-                          curl -L http://$PORTAL_TST | grep "${ODOO_URL}"
-                          curl -L http://$PORTAL_TST | grep "${PGADMIN_URL}"
+                              curl -L http://$PORTAL_TST | grep "${ODOO_URL}"
+                              curl -L http://$PORTAL_TST | grep "${PGADMIN_URL}"
                           '''
                       } else {
                           sh '''
-                          curl -L http://$PORTAL_TST:81 | grep "${ODOO_URL}"
-                          curl -L http://$PORTAL_TST:81 | grep "${PGADMIN_URL}"
+                              curl -L http://$PORTAL_TST:81 | grep "${ODOO_URL}"
+                              curl -L http://$PORTAL_TST:81 | grep "${PGADMIN_URL}"
                           '''
                       }
                       sh '''
-                      docker stop $IMAGE_NAME-$BranchName
-                      docker rm $IMAGE_NAME-$BranchName
+                          docker stop $IMAGE_NAME-$BranchName
+                          docker rm $IMAGE_NAME-$BranchName
                       '''
                 }
             }
@@ -113,13 +109,13 @@ pipeline {
                 script {
                     if (env.BRANCH_NAME == 'main') {
                         sh '''
-                        docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW
-                        docker push $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME:$IMAGE_TAG
+                            docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW
+                            docker push $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME:$IMAGE_TAG
                         '''
                     } else {
                         sh '''
-                        docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW
-                        docker push $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG
+                            docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW
+                            docker push $DOCKERHUB_CREDENTIALS_USR/$IMAGE_NAME-$BranchName:$IMAGE_TAG
                         '''
                     }
                 }
@@ -143,10 +139,11 @@ pipeline {
             }
             steps {
                 sshagent(credentials: ['SSHKEY']) {
-                    sh 'sed s/ODOOHOST/$ODOO/ IC_deploy/inventory/hosts.example | sed s/PGADMINHOST/$PGADMIN/ | sed s/SSHUSER/$DEPLOY_USER/ > IC_deploy/inventory/hosts'
+                    //sh 'sed s/ODOOHOST/$ODOO/ IC_deploy/inventory/hosts.example | sed s/PGADMINHOST/$PGADMIN/ | sed s/SSHUSER/$DEPLOY_USER/ > IC_deploy/inventory/hosts'
                     ansiblePlaybook(
                     inventory: 'IC_deploy/inventory/hosts',
-                    playbook: 'IC_deploy/deploy.yml')
+                    playbook: 'IC_deploy/deploy.yml',
+                    limit: 'review')
                     sh '''
                         [ -d ~/.ssh ] || mkdir ~/.ssh && chmod 0700 ~/.ssh
                         ssh-keyscan -t rsa,dsa,ed25519 ${DEPLOY_ENV} >> ~/.ssh/known_hosts
@@ -187,10 +184,11 @@ pipeline {
             }
             steps {
                 sshagent(credentials: ['SSHKEY']) {
-                    sh 'sed s/ODOOHOST/$ODOO/ IC_deploy/inventory/hosts.example | sed s/PGADMINHOST/$PGADMIN/ | sed s/SSHUSER/$DEPLOY_USER/ > IC_deploy/inventory/hosts'
+                    //sh 'sed s/ODOOHOST/$ODOO/ IC_deploy/inventory/hosts.example | sed s/PGADMINHOST/$PGADMIN/ | sed s/SSHUSER/$DEPLOY_USER/ > IC_deploy/inventory/hosts'
                     ansiblePlaybook(
                     inventory: 'IC_deploy/inventory/hosts',
-                    playbook: 'IC_deploy/deploy.yml')
+                    playbook: 'IC_deploy/deploy.yml',
+                    limit: 'production')
                     sh '''
                         [ -d ~/.ssh ] || mkdir ~/.ssh && chmod 0700 ~/.ssh
                         ssh-keyscan -t rsa,dsa,ed25519 ${DEPLOY_ENV} >> ~/.ssh/known_hosts
