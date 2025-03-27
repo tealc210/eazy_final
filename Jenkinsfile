@@ -51,14 +51,13 @@ pipeline {
                     cd ./app-code/
                     ${SNR_SCANNER}/bin/sonar-scanner -Dsonar.organization=${SONARCLD_ORG} -Dsonar.projectKey=${SONARCLD_PJ_KEY} -Dsonar.sources=. -Dsonar.host.url=https://sonarcloud.io
                     '''
-
                 }
             }
         }
-
         stage("QUALITY GATE") {
             steps {
-                timeout(time: 1, unit: 'HOURS') {
+                timeout(time: 5, unit: 'MINUTES') {
+                    sleep(5)
                     waitForQualityGate abortPipeline: true
                 }
             }
