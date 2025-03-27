@@ -156,7 +156,7 @@ pipeline {
                             -o SendEnv=IMAGE_TAG \
                             -o SendEnv=DOCKERHUB_CREDENTIALS_USR \
                             -o SendEnv=DOCKERHUB_CREDENTIALS_PSW \
-                            -C "$command1 && $command2 && $command3 && $command4 && sleep 10"
+                            -C "$command1 && $command2 && $command3 && $command4 && sleep 15"
                     '''
                 }
 

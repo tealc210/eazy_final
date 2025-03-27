@@ -1,5 +1,7 @@
 ---
 # defaults file for pgadmin_role
+PGADMIN_SERVICE_NAME: "pgadmin"
+CONF_FILE_REMOTE_PATH: "/tmp/server.json"
 ADMIN_MAIL: "john.doe@nowhere.com"
 ADMIN_PASS: "AZERTy-0"
 INSTANCE_NAME: "ic_pgadm"
