@@ -11,3 +11,8 @@
   register: output
 - debug:
     var: output
+
+- name: Remove compose file
+  ansible.builtin.file:
+    path: /tmp/docker-compose.yml
+    state: absent

@@ -2,7 +2,7 @@
 # tasks file for pgadmin_role
 - name: PgAdmin configuration file
   ansible.builtin.template:
-    src: server.json.j2
+    src: servers.json.j2
     dest: "{{ CONF_FILE_REMOTE_PATH }}"
 
 - name: Compose file
@@ -16,3 +16,8 @@
   register: output
 - debug:
     var: output
+
+- name: Remove compose file
+  ansible.builtin.file:
+    path: /tmp/docker-compose.yml
+    state: absent
