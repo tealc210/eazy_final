@@ -9,6 +9,7 @@
   docker_compose:
     project_src: /tmp
   register: output
+  ignore_errors: true
 - debug:
     var: output
 
@@ -16,3 +17,8 @@
   ansible.builtin.file:
     path: /tmp/docker-compose.yml
     state: absent
+
+- name: Deployment failure
+  ansible.builtin.fail:
+    msg: "Services deployment failed."
+  when: output.failed != false

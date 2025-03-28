@@ -54,6 +54,7 @@ pipeline {
                 }
             }
         }
+
         stage("QUALITY GATE") {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
@@ -183,7 +184,6 @@ pipeline {
             }
             steps {
                 sshagent(credentials: ['SSHKEY']) {
-                    //sh 'sed s/ODOOHOST/$ODOO/ IC_deploy/inventory/hosts.example | sed s/PGADMINHOST/$PGADMIN/ | sed s/SSHUSER/$DEPLOY_USER/ > IC_deploy/inventory/hosts'
                     ansiblePlaybook(
                     inventory: 'IC_deploy/inventory/hosts',
                     playbook: 'IC_deploy/deploy.yml',
@@ -213,6 +213,7 @@ pipeline {
             }
         }
     }
+
     post {
         success {
             script {
