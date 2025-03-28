@@ -1,5 +1,11 @@
 ---
 # tasks file for pgadmin_role
+- name: Create a project directory
+  ansible.builtin.file:
+    path: /tmp/pgadmin
+    state: directory
+    mode: '0755'
+
 - name: PgAdmin configuration file
   ansible.builtin.template:
     src: servers.json.j2
@@ -8,11 +14,12 @@
 - name: Compose file
   ansible.builtin.template:
     src: docker-compose.yml.j2
-    dest: /tmp/docker-compose.yml
+    dest: /tmp/pgadmin/docker-compose.yml
 
 - name: Create and start services
-  docker_compose:
-    project_src: /tmp
+  community.docker.docker_compose_v2:
+    project_src: /tmp/pgadmin
+    recreate: "always"
   register: output
   ignore_errors: true
 - debug:
@@ -20,7 +27,7 @@
 
 - name: Remove compose file
   ansible.builtin.file:
-    path: /tmp/docker-compose.yml
+    path: /tmp/pgadmin/docker-compose.yml
     state: absent
 
 - name: Deployment failure

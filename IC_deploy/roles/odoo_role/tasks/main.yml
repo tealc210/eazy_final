@@ -1,13 +1,20 @@
 ---
 # tasks file for odoo_role
+- name: Create a project directory
+  ansible.builtin.file:
+    path: /tmp/odoo
+    state: directory
+    mode: '0755'
+
 - name: Compose file
   ansible.builtin.template:
     src: docker-compose.yml.j2
-    dest: /tmp/docker-compose.yml
+    dest: /tmp/odoo/docker-compose.yml
 
 - name: Create and start services
-  docker_compose:
-    project_src: /tmp
+  community.docker.docker_compose_v2:
+    project_src: /tmp/odoo
+    recreate: "always"
   register: output
   ignore_errors: true
 - debug:
@@ -15,7 +22,7 @@
 
 - name: Remove compose file
   ansible.builtin.file:
-    path: /tmp/docker-compose.yml
+    path: /tmp/odoo/docker-compose.yml
     state: absent
 
 - name: Deployment failure

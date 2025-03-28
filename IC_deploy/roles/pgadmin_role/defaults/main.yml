@@ -4,6 +4,7 @@ PGADMIN_SERVICE_NAME: "pgadmin"
 CONF_FILE_REMOTE_PATH: "/tmp/server.json"
 ADMIN_MAIL: "john.doe@nowhere.com"
 ADMIN_PASS: "AZERTy-0"
-INSTANCE_NAME: "ic_pgadm"
+PGA_CT_NAME: "ic_pgadm"
 HTTP_PORT: 8080
 HTTPS_PORT: 8443
+DNS_SRV_IP: ""

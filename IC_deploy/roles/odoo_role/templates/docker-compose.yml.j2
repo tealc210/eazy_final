@@ -10,14 +10,14 @@ services:
             - {{ DB_VLM_ID }}:/var/lib/postgresql/data
         networks:
             - {{ NET_ID }}
-        container_name: ic_pgdb
+        container_name: {{ PG_CT_NAME }}
         image: postgres:17
     {{ ODOO_SERVICE }}:
         ports:
             - {{ EXP_ODOO_PORT }}:8069
-        container_name: ic_odoo
+        container_name: {{ ODOO_CT_NAME }}
         environment:
-        - HOST=ic_pgdb
+        - HOST={{ PG_CT_NAME }}
         - USER={{ PG_USR_ID }}
         - PASSWORD={{ PG_USR_PASS }}
         depends_on:

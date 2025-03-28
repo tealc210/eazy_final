@@ -1,10 +1,14 @@
 services:
     {{ PGADMIN_SERVICE_NAME }}:
         stdin_open: true
-        container_name: {{ INSTANCE_NAME}}
+        container_name: {{ PGA_CT_NAME}}
         ports:
             - {{ HTTP_PORT }}:80
             - {{ HTTPS_PORT }}:8443
+{% if DNS_SRV_IP is defined and DNS_SRV_IP|length %}
+        dns:
+            - {{ DNS_SRV_IP }}
+{% endif %}
         volumes:
             - {{ CONF_FILE_REMOTE_PATH }}:/pgadmin4/servers.json
         environment:
